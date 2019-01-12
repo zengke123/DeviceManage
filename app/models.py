@@ -101,7 +101,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, index=True)
     password_hash = db.Column(db.String(128))
-    role_id = db.Column(db.Integer)
+    role_id = db.Column(db.Integer, default=2)
 
     def verify_password(self, password):
         if password == self.password_hash:
@@ -109,6 +109,12 @@ class User(UserMixin, db.Model):
         else:
             return False
 
+    @property
+    def is_admin(self):
+        if self.role_id == 1:
+            return True
+        else:
+            return False
 
 
 @login_manager.user_loader
