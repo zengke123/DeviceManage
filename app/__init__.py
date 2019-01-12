@@ -15,6 +15,8 @@ def create_app():
     admin.init_app(app)
     from .main import main as main_blueprint
     from .operate import operate as operate_blueprint
+    from .auth import auth as auth_blueprint
     app.register_blueprint(main_blueprint, url_prefix='/info')
     app.register_blueprint(operate_blueprint, url_prefix='/operate')
+    app.register_blueprint(auth_blueprint, url_prefix='/auth')
     return app

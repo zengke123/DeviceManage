@@ -282,7 +282,7 @@
             success:function(data) {
                 if(data["flag"]==="success"){
                     alert("数据导出成功,点击Excel下载");
-                    document.getElementById("DOWNLOAD").setAttribute('href',"/main/download_file/"+data["file"]);
+                    document.getElementById("DOWNLOAD").setAttribute('href',"/info/download_file/"+data["file"]);
                 }
             }
         });
