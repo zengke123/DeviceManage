@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}批量导入{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h2 align="left">批量导入<small></small></h2><br>
+    <form><table class="table table-hover"><tbody>
+        <tr>
+            <td>
+            <select id="value1" name="fieldvalue" class="form-control" onchange="">
+            <option value="">选择数据类型</option>
+                <option value="">硬件信息</option>
+                <option value="">系统容量</option>
+            </select>
+            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
+            </td>
+            <td>
+                <input id="lefile" type="file" style="display:none">
+                <div class="input-append">
+                    <input id="photoCover" class="input-large" type="text" style="height:30px;">
+                    <a class="btn" onclick="$('input[id=lefile]').click();">上传</a>
+                </div>
+            </td>
+        </tr>
+    </tbody></table>
+    </form>
+    <div class="alert alert-warning" role="alert">下载模板进行批量导入，请勿修改字段</div>
+    <button type="button" class="btn btn-success">下载模板</button>
+</div>
+
+
+{% endblock %}

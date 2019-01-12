@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}软件信息{% endblock %}
+
+{% block body %}
+<div class="navbar-wrapper" id="daohang">
+  <div class="container" id="container">
+    <form action="fmsosmnr" id="OSMNRForm" name="OSMNRForm" method="post" enctype="multipart/form-data">
+        <h2 align="center">现网资产查询<small></small></h2>
+        <div class="container-fluid">
+        <div class="row-fluid">
+        <div class="span12">
+        <table class="table table-hover"><tbody>
+        <tr>
+            <td>
+            <select id="fieldvalue" name="fieldvalue" class="form-control" onchange="selectChange(1)">
+            <option value="">选择平台</option>
+            <option value="92">SCP</option>
+            <option value="93">SCCL</option>
+            <option value="94">VC</option>
+            <option value="95">SICP</option>
+            <option value="103">SCPAS</option>
+            <option value="104">SCCLAS</option>
+            <option value="109">SMP</option>
+            <option value="110">SCCLMGR</option>
+            <option value="111">CCP</option>
+            <option value="477">CENTREX</option>
+            </select>
+            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
+            </td>
+            <td>
+            <select id="fieldvalue" name="fieldvalue" class="form-control" onchange="selectChange(1)">
+            <option value="">选择集群</option>
+            </select>
+            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
+            </td>
+            <td>
+            <select id="fieldvalue" name="fieldvalue" class="form-control" onchange="selectChange(1)">
+            <option value="">选择机房</option>
+            </select>
+            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
+            </td>
+        </tr>
+        <tr>
+            <td>
+            <input id="fieldvalue" name="fieldvalue" type="text" class="form-control" placeholder="查询 账户" value="" onkeypress="EnterPress(event)">
+            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
+            </td>
+            <td>
+            <input id="fieldvalue" name="fieldvalue" type="text" class="form-control" placeholder="查询 机房名称" value="" onkeypress="EnterPress(event)">
+            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
+            </td>
+            <td>
+            <button class="btn btn-primary" type="button" onclick="">查询</button>
+            <button type="button" class="btn btn-default" onclick="">导出</button>
+            <button type="button" class="btn btn-default" onclick="">Excel</button>
+            </td>
+        </tr>
+        </tbody></table>
+        </div></div></div>
+        <div class="container-fluid">
+<div class="row-fluid">
+<div class="span12">
+<table id="datalisttable" class="table table-hover">
+<thead>
+  <tr>
+  <th><input id="selectcheck" type="checkbox" onclick="javascript:dealselectcheck();"></th>
+  <th>平台</th>
+  <th>集群</th>
+  <th>主机</th>
+  <th>设备类型</th>
+  <th>设备型号</th>
+  <th>序列号</th>
+  <th>机房</th>
+  <th>机架</th>
+  <th>电源柜</th>
+  <th>状态</th>
+  <th>过保时间</th>
+  </tr>
+</thead>
+  <tbody>
+  <tr>
+  <td><input type="checkbox" name="lineIndex" value="0"></td><td>SCPAS</td><td>SCPAS03</td><td>SAS031</td><td>ss7</td><td>ss7配置及可执行备份(天)</td><td>文件系统</td><td>全量备份</td><td>每天</td><td onmouseover="Tip(&quot;0时10分&quot;, BALLOON, true, ABOVE, true, OFFSETX, -10)" onmouseout="UnTip()">0时10分</td><td>ebakgsq</td><td><a style="text-decoration:none;" href="javascript:delObject2(0)" class="glyphicon glyphicon-remove-circle" data-toggle="tooltip" title="" data-original-title="删除"></a>
+</td></tr><tr><td><input type="checkbox" name="lineIndex" value="1"></td><td>SCPAS</td><td>SCPAS03</td><td>SAS031</td><td>min01</td><td><a style="color:black;text-decoration:none;" href="#" data-toggle="tooltip" title="" data-placement="top" data-original-title="minXX配置及可执行文件备份(天)">minXX配置及可执行文...</a></td><td>文件系统</td><td>全量备份</td><td>每天</td><td onmouseover="Tip(&quot;0时10分&quot;, BALLOON, true, ABOVE, true, OFFSETX, -10)" onmouseout="UnTip()">0时10分</td><td>ebakgsq</td><td><a style="text-decoration:none;" href="javascript:delObject2(1)" class="glyphicon glyphicon-remove-circle" data-toggle="tooltip" title="" data-original-title="删除"></a>
+</td></tr><tr><td><input type="checkbox" name="lineIndex" value="2"></td><td>SCPAS</td><td>SCPAS03</td><td>SAS031</td><td>root</td><td>LINUX系统配置备份(天)</td><td>文件系统</td><td>全量备份</td><td>每天</td><td onmouseover="Tip(&quot;0时30分&quot;, BALLOON, true, ABOVE, true, OFFSETX, -10)" onmouseout="UnTip()">0时30分</td><td>ebakgsq</td><td><a style="text-decoration:none;" href="javascript:delObject2(2)" class="glyphicon glyphicon-remove-circle" data-toggle="tooltip" title="" data-original-title="删除"></a>
+</td></tr><tr><td><input type="checkbox" name="lineIndex" value="3"></td><td>SCPAS</td><td>SCPAS03</td><td>SAS032</td><td>ss7</td><td>ss7配置及可执行备份(天)</td><td>文件系统</td><td>全量备份</td><td>每天</td><td onmouseover="Tip(&quot;0时10分&quot;, BALLOON, true, ABOVE, true, OFFSETX, -10)" onmouseout="UnTip()">0时10分</td><td>ebakgsq</td><td><a style="text-decoration:none;" href="javascript:delObject2(3)" class="glyphicon glyphicon-remove-circle" data-toggle="tooltip" title="" data-original-title="删除"></a>
+</td></tr></tbody></table>
+
+</div>
+</div>
+</div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

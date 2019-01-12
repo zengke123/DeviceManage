@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}信息录入{% endblock %}
+
+{% block body %}
+<div class="container" id="container">
+<h2 align="left">信息录入<small></small></h2><br>
+<div class="row">
+    <ul class="nav nav-tabs" role="presentation">
+        <li role="presentation" class="active"><a href="#hardware" aria-controls="hardware" role="tab" data-toggle="tab">硬件信息</a></li>
+        <li role="presentation" ><a href="#software" aria-controls="software" role="tab" data-toggle="tab">系统容量</a></li>
+    </ul>
+    <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="hardware">
+        <form class="form-horizontal" id="addHardForm">
+            <div class="form-group">
+                {% for col in show_cols_h %}
+                <label for="recipient-name" class="col-sm-1 control-label">{{ col[0] }}</label>
+                <div class="col-sm-5">
+                <input type="text" class="form-control" id="{{ col[1] }}" name="{{ col[1] }}">
+                </div>
+                {% endfor %}
+            </div>
+        </form>
+        <div class="alert alert-warning" role="alert">* 为必填项</div>
+        <button type="button" class="btn btn-success" id="SAVE_H">保存</button>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="software">
+        <form class="form-horizontal" id="addSoftForm">
+            {% for col in show_cols_s %}
+            <div class="form-group">
+                <label for="recipient-name" class="col-sm-1 control-label">{{ col[0] }}</label>
+                <div class="col-sm-5">
+                <input type="text" class="form-control" id="{{ col[1] }}" name="{{ col[1] }}">
+                </div>
+            </div>
+            {% endfor %}
+        </form>
+        <div class="alert alert-warning" role="alert">* 为必填项</div>
+        <button type="button" class="btn btn-success" id="SAVE_S">保存</button>
+    </div>
+</div>
+
+</div>
+</div>
+<script type="text/javascript">
+     $("#SAVE_H").click(function () {
+        var formSerial = {};
+		 $($("#addHardForm").serializeArray()).each(function(){
+		    formSerial[this.name] = this.value;
+		 });
+        $.ajax({
+            url: "{{ url_for('operate.add_new') }}",
+            type: "post",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(formSerial),
+            dataType: "json",
+            success:function(data) {
+                if(data["flag"]==="success"){
+                    alert("保存成功");
+                }
+                else alert("保存失败");
+            }
+        });
+     });
+
+     $("#SAVE_S").click(function () {
+        var formSerial = {};
+		 $($("#addSoftForm").serializeArray()).each(function(){
+		    formSerial[this.name] = this.value;
+		 });
+        $.ajax({
+            url: "{{ url_for('operate.add_new_s') }}",
+            type: "post",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(formSerial),
+            dataType: "json",
+            success:function(data) {
+                if(data["flag"]==="success"){
+                    alert("保存成功");
+                }
+                else alert("保存失败");
+            }
+        });
+     });
+</script>
+{% endblock %}

@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% block title %}系统容量{% endblock %}
+
+{% block body %}
+<div class="navbar-wrapper" id="daohang">
+  <div class="container" id="container">
+    <form action="fmsosmnr" id="OSMNRForm" name="OSMNRForm" method="post" enctype="multipart/form-data">
+        <h2 align="center">系统容量查询<small></small></h2>
+        <div class="container-fluid">
+        <div class="row-fluid">
+        <div class="span12">
+        <table class="table table-hover"><tbody>
+        <tr>
+            <td>
+            <select id="value1" name="fieldvalue" class="form-control" onchange="">
+            <option value="">选择平台</option>
+            {% for pt in platform %}
+                <option value="">{{ pt }}</option>
+            {% endfor %}
+            </select>
+            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
+            </td>
+            <td>
+            <select id="value2" name="fieldvalue" class="form-control" onchange="selectChange(1)">
+            <option value="">选择集群</option>
+            </select>
+            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
+            </td>
+            <td>
+            <button class="btn btn-primary" type="button" onclick="query()">查询</button>
+            <button type="button" class="btn btn-default" onclick="unload_excel()">导出</button>
+            <a type="button" class="btn btn-default" href="" id="DOWNLOAD">Excel</a>
+            </td>
+        </tr>
+        </tbody></table>
+        </div></div></div>
+        <div class="container-fluid">
+        <div class="row-fluid">
+        <div class="span12">
+        <table id="datalisttable" class="table table-hover">
+        <thead>
+          <tr>
+          {% for col in show_cols %}
+                <th>{{ col[0] }}</th>
+          {% endfor %}
+          <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="tablevalue">
+        </tbody></table>
+        </div>
+        </div>
+        </div>
+    </form>
+  </div>
+</div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">修改</h4>
+      </div>
+      <div class="modal-body">
+        <form class="form-horizontal" id="addForm">
+            {% for col in show_cols %}
+            <div class="form-group">
+                <label for="recipient-name" class="col-sm-2 control-label">{{ col[0] }}</label>
+                <div class="col-sm-10">
+                <input type="text" class="form-control" id="{{ col[1] }}" name="{{ col[1] }}">
+                </div>
+            </div>
+            {% endfor %}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        <button type="button" class="btn btn-primary" id="SAVE" data-dismiss="modal">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="myDelModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-body">
+        删除网元信息
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">否</button>
+        <button type="button" class="btn btn-primary" id="DEL" data-dismiss="modal">是</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+    $("#value1").change(function() {
+        var checkText=$("#value1").find("option:selected").text();
+        $.ajax({   //2、发送给后端
+            url: "{{ url_for('main.get_capacity_cluster') }}",
+            type: 'POST',
+            data: {"data": checkText},
+            success:function(data) {
+                $("#value2").empty();
+                var content="<option value=''>选择网元</option>";
+                $("#value2").append(content);
+                $.each(data["cluster"], function(idx,obj){
+	                var temp="<option value=''>"+obj+"</option>";
+	                $("#value2").append(temp)
+                });
+            }
+        })
+    });
+
+    function query() {
+        var pt=$("#value1").find("option:selected").text();
+        var jq=$("#value2").find("option:selected").text();
+        $.ajax({   //2、发送给后端
+            url: "{{ url_for('main.get_capacity') }}",
+            type: 'POST',
+            data: { "pt": pt,
+                    "jq": jq
+                },
+            success:function(data) {
+                if(data["flag"]==="success"){
+                    $("#tablevalue").empty();
+                    $.each(data["hosts"], function(idx,obj){
+	                var temp="<tr><!--td><input type=\"checkbox\" name=\"lineIndex\" value=\"0\"></td-->"+
+                        "<td>"+obj.platform+"</td>"+
+                        "<td>"+obj.cluster+"</td>"+
+                        "<td>"+obj.h_capacity+"</td>"+
+                        "<td>"+obj.h_caps+"</td>"+
+                        "<td>"+obj.s_capacity+"</td>"+
+                        "<td>"+obj.s_caps+"</td>"+
+                        "<td><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal\" data-whatever=\""+obj.id+"\">修改</button>"+
+                            "<button type=\"button\" class=\"btn btn-danger btn-xs\" data-toggle=\"modal\" data-target=\"#myDelModal\" data-whatever=\""+obj.id+"\">删除</button>"+
+                        "</td>" +
+                        "</tr>";
+	                $("#tablevalue").append(temp)
+                     });
+                 }
+                else alert("查询失败")
+            }
+        });
+    }
+
+
+    $('#myModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var id_no = button.data('whatever');
+        var modal = $(this);
+        modal.find('.modal-title').text(id_no);
+        $.ajax({
+            url: "{{ url_for('main.get_capacity_id') }}",
+            type: 'POST',
+            data: {"id": id_no},
+            success:function(data) {
+                if(data["flag"]==="success"){
+                    var obj = data["hosts"];
+                    modal.find('.modal-body #platform').val(obj.platform);
+                    modal.find('.modal-body #cluster').val(obj.cluster);
+                    modal.find('.modal-body #h_capacity').val(obj.h_capacity);
+                    modal.find('.modal-body #h_caps').val(obj.h_caps);
+                    modal.find('.modal-body #s_capacity').val(obj.s_capacity);
+                    modal.find('.modal-body #s_caps').val(obj.s_caps);
+                    }
+                else alert("查询失败")
+            }
+        });
+    });
+
+    $('#myDelModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var id_no = button.data('whatever');
+        var modal = $(this);
+        modal.find('#DEL').attr("value",id_no);
+    });
+
+    $("#SAVE").click(function () {
+        var device_id = $(".modal-title").text();
+        var formSerial = {};
+        formSerial["id"] = device_id;
+		 $($("#addForm").serializeArray()).each(function(){
+		    formSerial[this.name] = this.value;
+		 });
+        $.ajax({
+            url: "{{ url_for('main.modify_capacity_id') }}",
+            type: "post",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(formSerial),
+            dataType: "json",
+            success:function(data) {
+                if(data["flag"]==="success"){
+                    alert("保存成功");
+                    query()
+                }
+                else alert("保存失败");
+            }
+        });
+
+
+    });
+
+    $("#DEL").click(function () {
+        var device_id = this.value;
+        $.ajax({
+            url: "{{ url_for('main.delete_capacity_id') }}",
+            type: "post",
+            data: {"id":device_id},
+            success:function(data) {
+                if(data["flag"]==="success"){
+                    alert("删除成功");
+                    query()
+                }
+                else alert("删除失败");
+            }
+        });
+
+    });
+
+    function unload_excel() {
+        var set = [];
+        $('#datalisttable').find('tr').each(function() {
+            var row = [];
+            $(this).find('th,td').each(function() {
+                row.push($(this).text().trim());
+            });
+            set.push(row);
+            });
+        $.ajax({
+            url: "{{ url_for('main.unload_excel') }}",
+            type: "post",
+            data: {"data":JSON.stringify(set)},
+            success:function(data) {
+                if(data["flag"]==="success"){
+                    alert("数据导出成功,点击Excel下载");
+                    document.getElementById("DOWNLOAD").setAttribute('href',"/info/download_file/"+data["file"]);
+                }
+            }
+        });
+    }
+
+</script>
+{% endblock %}
