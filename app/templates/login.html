@@ -14,21 +14,19 @@
 	<div class="container" style="padding-top: 10%">
         <div class="row">
             <div class="col-md-offset-3 col-md-6">
-                <form class="form-horizontal">
-                    <span class="heading">用户登录</span>
+                <form class="form-horizontal" method="post">
+                    <span class="heading">登录</span>
+                    {{ form.csrf_token }}
                     <div class="form-group">
-                        <input type="text" class="form-control" id="inputEmail3" placeholder="用户名">
+                        {{ form.username(class='form-control',placeholder="用户名") }}
                     </div>
                     <div class="form-group help">
-                        <input type="password" class="form-control" id="inputPassword3" placeholder="密　码">
+                        {{ form.password(class='form-control',placeholder="密码") }}
                     </div>
                     <div class="form-group">
-                        <div class="main-checkbox">
-                            <input type="checkbox" value="None" id="checkbox1" name="check"/>
-                            <label for="checkbox1"></label>
-                        </div>
+                        {{ form.remember_me(class="main-checkbox") }}
                         <span class="text">记住我</span>
-                        <button type="submit" class="btn btn-success">登录</button>
+                        {{ form.submit(class="btn btn-success") }}
                     </div>
                 </form>
             </div>

@@ -8,13 +8,9 @@ from flask_login import login_user, login_required, logout_user
 @auth.route("/login",methods=['GET','POST'])
 def login():
     form = LoginForm()
-    print(form.validate_on_submit())
     # 渲染HTML时需加入 {{ form.csrf_token }} 否则validate_on_submit一直为False
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
-        print(form.password.data)
-        print(form.username.data)
-        print(user)
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
             return redirect(request.args.get('next') or url_for('main.index'))

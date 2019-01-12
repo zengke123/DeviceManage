@@ -51,9 +51,9 @@
           </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-          {% if username %}
-		    <li><a href="#">{{ username}}</a></li>
-              <li><a href="#">退出</a></li>
+          {% if current_user.is_authenticated %}
+		    <li><a href="#">{{ current_user.username }}</a></li>
+              <li><a href="{{ url_for("auth.logout") }}">退出</a></li>
           {% else %}
             <li><a href="{{ url_for("auth.login") }}">登录</a></li>
           {% endif %}

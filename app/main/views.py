@@ -3,14 +3,17 @@ from sqlalchemy import distinct
 from . import main
 from .. import db
 from ..models import Host, Capacity
+from flask_login import login_required
 
 
 @main.route('/')
+@login_required
 def index():
     return render_template('index.html')
 
 
 @main.route('/hardware')
+@login_required
 def hardware():
     # 页面中需显示的列，js中对应列也需要增加
     show_cols = [('平台', 'platform'), ('集群', 'cluster'), ('主机', 'hostname'), ('设备类型', 'device_type'),
@@ -25,6 +28,7 @@ def hardware():
 
 
 @main.route('/get_cluster', methods=["GET", "POST"])
+@login_required
 def get_cluster():
     platforms = request.form.get('data')
     clusters = db.session.query(distinct(Host.cluster)).filter(Host.platform == platforms).all()
@@ -39,6 +43,7 @@ def get_cluster():
 
 
 @main.route('/get_detail', methods=["GET", "POST"])
+@login_required
 def get_detail():
     temp = ["选择平台", "选择机房", "选择网元", "选择设备类型", "选择操作系统", "选择集群"]
     pt = request.form.get('pt')
@@ -68,6 +73,7 @@ def get_detail():
 
 
 @main.route('/get_detail_id', methods=["GET", "POST"])
+@login_required
 def get_detail_id():
     device_id = request.form.get('id')
     host_info = db.session.query(Host).filter(Host.id == device_id).one()
@@ -79,6 +85,7 @@ def get_detail_id():
 
 
 @main.route('/modify_by_id', methods=["GET", "POST"])
+@login_required
 def modify_by_id():
     datas = request.get_json()
     try:
@@ -93,6 +100,7 @@ def modify_by_id():
 
 
 @main.route('/delete_by_id', methods=["GET", "POST"])
+@login_required
 def delete_by_id():
     device_id = request.form.get('id')
     try:
@@ -108,6 +116,7 @@ def delete_by_id():
 
 # 软件信息查询页面容量入口
 @main.route('/software')
+@login_required
 def software():
     show_cols = [('平台', 'platform'), ('集群', 'cluster'), ('主机', 'hostname'), ('账号', 'account'),
                  ('业务版本', 'version'), ('软件模块', 'software_version'), ('操作系统', 'os_version'),
@@ -121,6 +130,7 @@ def software():
 
 # 业务系统页面容量入口
 @main.route('/capacity')
+@login_required
 def capacity():
     show_cols = [('平台', 'platform'), ('集群', 'cluster'), ('硬件容量(W)', 'h_capacity'), ('硬件容量(CAPS)', 'h_caps'),
                  ('软件容量(W)', 's_capacity'), ('软件容量(CAPS)', 's_caps')]
@@ -131,6 +141,7 @@ def capacity():
 
 # 业务容量页面根据选中平台查找对应集群
 @main.route('/get_capacity_cluster', methods=["GET", "POST"])
+@login_required
 def get_capacity_cluster():
     platforms = request.form.get('data')
     clusters = db.session.query(distinct(Capacity.cluster)).filter(Capacity.platform == platforms).all()
@@ -143,6 +154,7 @@ def get_capacity_cluster():
 
 # 容量页面查询数据
 @main.route('/get_capacity', methods=["GET", "POST"])
+@login_required
 def get_capacity():
     temp = ["选择平台", "选择网元"]
     pt = request.form.get('pt')
@@ -167,6 +179,7 @@ def get_capacity():
 
 
 @main.route('/get_capacity_id', methods=["GET", "POST"])
+@login_required
 def get_capacity_id():
     device_id = request.form.get('id')
     info = db.session.query(Capacity).filter(Capacity.id == device_id).one()
@@ -179,6 +192,7 @@ def get_capacity_id():
 
 # 容量信息修改提交页面处理函数
 @main.route('/modify_capacity_id', methods=["GET", "POST"])
+@login_required
 def modify_capacity_id():
     datas = request.get_json()
     try:
@@ -194,6 +208,7 @@ def modify_capacity_id():
 
 # 容量信息删除处理
 @main.route('/delete_capacity_id', methods=["GET", "POST"])
+@login_required
 def delete_capacity_id():
     device_id = request.form.get('id')
     try:
@@ -208,6 +223,7 @@ def delete_capacity_id():
 
 
 @main.route('/unload', methods=["GET", "POST"])
+@login_required
 def unload_excel():
     import pandas, datetime, json, os
     path = "/Users/EB/PycharmProjects/DeviceManage/unloadfiles/"
@@ -236,6 +252,7 @@ def unload_excel():
 
 
 @main.route('/download_file/<filename>')
+@login_required
 def download_file(filename):
     path = "/Users/EB/PycharmProjects/DeviceManage/unloadfiles/"
     # file = request.form.get("filename")
@@ -243,5 +260,6 @@ def download_file(filename):
 
 
 @main.route('/custom')
+@login_required
 def custom():
     return render_template('customInfo.html')
