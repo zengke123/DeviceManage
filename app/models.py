@@ -30,7 +30,7 @@ class Host(db.Model):
     __tablename__ = 'host'
     id = db.Column(db.Integer, primary_key=True, unique=True, autoincrement=True)
     platform = db.Column(db.String(32), index=True, nullable=False)
-    cluster = db.Column(db.String(32), index=True, nullable=False)
+    cluster = db.Column(db.String(32), primary_key=True, nullable=False)
     hostname = db.Column(db.String(32), primary_key=True, nullable=False)
     device_type = db.Column(db.String(32), nullable=False)
     manufacturer = db.Column(db.String(32), nullable=True)

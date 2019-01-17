@@ -4,6 +4,7 @@ from . import main
 from .. import db
 from ..models import Host, Capacity
 from flask_login import login_required
+from ..filesetting import DOWNLOAD_FOLDER
 
 
 @main.route('/')
@@ -226,12 +227,11 @@ def delete_capacity_id():
 @login_required
 def unload_excel():
     import pandas, datetime, json, os
-    path = "/Users/EB/PycharmProjects/DeviceManage/unloadfiles/"
+    # path = "/Users/EB/PycharmProjects/DeviceManage/unloadfiles/"
     try:
-        filelist = os.listdir(path)
-        print(filelist)
+        filelist = os.listdir(DOWNLOAD_FOLDER)
         for file in filelist:
-            os.remove(path+file)
+            os.remove(DOWNLOAD_FOLDER+file)
     except Exception as e:
         print(str(e))
     temp = request.form.get('data')
@@ -240,7 +240,7 @@ def unload_excel():
         datas = [x[:-1] for x in data_list]
         filename = datetime.datetime.now().strftime("%Y%m%d%H%M%S") + ".xlsx"
         df = pandas.DataFrame(datas[1:], columns=datas[0])
-        df.to_excel(path + filename, index=False)
+        df.to_excel(DOWNLOAD_FOLDER + filename, index=False)
         result = {
             "flag": "success",
             "file": filename
@@ -254,9 +254,9 @@ def unload_excel():
 @main.route('/download_file/<filename>')
 @login_required
 def download_file(filename):
-    path = "/Users/EB/PycharmProjects/DeviceManage/unloadfiles/"
+    # path = "/Users/EB/PycharmProjects/DeviceManage/unloadfiles/"
     # file = request.form.get("filename")
-    return send_from_directory(path, filename=filename, as_attachment=True)
+    return send_from_directory(DOWNLOAD_FOLDER, filename=filename, as_attachment=True)
 
 
 @main.route('/custom')

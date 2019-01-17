@@ -4,29 +4,46 @@
 {% block body %}
 <div class="container">
     <h2 align="left">批量导入<small></small></h2><br>
-    <form><table class="table table-hover"><tbody>
+    <div class="alert alert-warning" role="alert">下载模板进行批量导入，请勿修改字段顺序</div>
+    <form method=post enctype=multipart/form-data>
+        <table class="table table-hover"><tbody>
         <tr>
             <td>
             <select id="value1" name="fieldvalue" class="form-control" onchange="">
             <option value="">选择数据类型</option>
-                <option value="">硬件信息</option>
-                <option value="">系统容量</option>
+                <option value="hardware">硬件信息</option>
+                <option value="software">系统容量</option>
             </select>
-            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
             </td>
             <td>
-                <input id="lefile" type="file" style="display:none">
-                <div class="input-append">
-                    <input id="photoCover" class="input-large" type="text" style="height:30px;">
-                    <a class="btn" onclick="$('input[id=lefile]').click();">上传</a>
-                </div>
+                <a type="button" class="btn btn-success" href="#" id="Download">下载模板</a>
             </td>
         </tr>
+        <tr><td id="buttonarea">
+
+        </td></tr>
     </tbody></table>
     </form>
-    <div class="alert alert-warning" role="alert">下载模板进行批量导入，请勿修改字段</div>
-    <button type="button" class="btn btn-success">下载模板</button>
 </div>
+<script type="text/javascript">
+    $("#value1").change(function() {
+        var checkText = $("#value1").find("option:selected").text();
+        $("#buttonarea").empty();
+        document.getElementById("Download").setAttribute('href',"#");
+        if(checkText!=="选择数据类型"){
+            var content="<input type=file name=file>\n" +
+            "            <br>\n" +
+            "            <button type=submit class=\"btn btn-primary\">导入</button>";
+            $("#buttonarea").append(content);
+            if(checkText==="硬件信息"){
+                document.getElementById("Download").setAttribute('href',"/operate/download_file/hosts.xlsx");
+            }
+            else{
+                document.getElementById("Download").setAttribute('href',"/operate/download_file/capacity.xlsx");
+            }
 
+        }
 
+    });
+</script>
 {% endblock %}

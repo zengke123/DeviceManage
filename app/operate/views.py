@@ -1,10 +1,14 @@
 from . import operate
 from .. import db
 from ..models import Host, Capacity
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, send_from_directory, redirect
+from flask_login import login_required
+from werkzeug.utils import secure_filename
+from ..filesetting import UPLOAD_FOLDER, ALLOWED_EXTENSIONS, TEMPLATE_FOLDER
 
 
 @operate.route('/new')
+@login_required
 def new():
     show_cols_h = [('* 平台', 'platform'), ('* 集群', 'cluster'), ('* 主机', 'hostname'),
                    ('设备类型', 'device_type'), ('设备厂家', 'manufacturer'), ('设备型号', 'device_model'),
@@ -18,6 +22,7 @@ def new():
 
 
 @operate.route('/add_new', methods=["GET", "POST"])
+@login_required
 def add_new():
     datas = request.get_json()
     try:
@@ -32,6 +37,7 @@ def add_new():
 
 
 @operate.route('/add_new_s', methods=["GET", "POST"])
+@login_required
 def add_new_s():
     datas = request.get_json()
     try:
@@ -45,8 +51,78 @@ def add_new_s():
     return jsonify(result)
 
 
-@operate.route('/load')
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@operate.route('/load', methods=['GET', 'POST'])
+@login_required
 def load():
+    import os
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return redirect(request.url)
+        file = request.files['file']
+        if file.filename == '':
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            data_type = request.form.get("fieldvalue")
+            print(data_type)
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
+            nums = load_to_db(data_type, UPLOAD_FOLDER+filename)
+            return  render_template("load_success.html", nums=nums)
     return render_template("load_device.html")
 
 
+
+@operate.route('/download_file/<filename>')
+@login_required
+def download_file(filename):
+    # path = "/Users/EB/PycharmProjects/DeviceManage/unloadfiles/"
+    # file = request.form.get("filename")
+    return send_from_directory(TEMPLATE_FOLDER, filename=filename, as_attachment=True)
+
+
+def load_to_db(data_type, filename):
+    from openpyxl import load_workbook
+    nums = 0
+    host_names = ["platform", "cluster", "hostname", "device_type", "manufacturer", "device_model", "serial",
+             "account", "version", "software_version", "local_ip", "nat_ip", "os_version", "engine_room",
+             "frame_number", "power_frame_number", "net_time", "period", "status"]
+    capacity_names = ["platform", "cluster", "h_capacity", "h_caps", "s_capacity", "s_caps"]
+    infos = {
+        "hardware": {
+            "cols": host_names,
+            "sheet": "设备列表"
+        },
+        "software": {
+            "cols": capacity_names,
+            "sheet": "系统容量"
+        }
+    }
+    try:
+        wb = load_workbook(filename)
+        ws = wb[infos.get(data_type)["sheet"]]
+        cols = len(infos.get(data_type)["cols"])
+        rows = ws.max_row
+        dbs = []
+        for i in range(2, rows + 1):
+            data = []
+            for j in range(1, cols + 1):
+                value = ws.cell(i, j).value
+                data.append(value)
+            item = {k: v for k, v in zip(infos.get(data_type)["cols"], data)}
+            if data_type == "hardware":
+                dbs.append(Host(**item))
+            elif data_type == "software":
+                dbs.append(Capacity(**item))
+        db.session.add_all(dbs)
+        db.session.commit()
+        nums = len(dbs)
+    except Exception as e:
+        print(str(e))
+    finally:
+        import os
+        os.remove(filename)
+    return nums
