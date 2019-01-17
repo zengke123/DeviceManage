@@ -1,12 +1,298 @@
 {% extends 'base.html' %}
 {% block title %}主页{% endblock %}
-
+{% block head %}
+    <!-- 引入 ECharts 文件 -->
+     <script src="{{ url_for('static',filename='js/echarts.common.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/custom.min.css') }}">
+{% endblock %}
 {% block body %}
 <div class="container">
-    <div class="jumbotron">
-    <h1>Hello, world!</h1>
-    <p>...</p>
-    <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a></p>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="dashboard_graph">
+                <div class="row x_title">
+                    <div class="col-md-6">
+                        <h3>分业务设备数量 <small>总数：{{ device_nums }}</small></h3>
+                    </div>
+                </div>
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div id="chart1" class="demo-placeholder" style="padding: 0px; position: relative;width: 100%;height:250px;">
+                        <script type="text/javascript">
+                    var dom = document.getElementById("chart1");
+                    var myChart = echarts.init(dom);
+                    var app = {};
+                    option = null;
+
+                    var xdata = {{ platforms|tojson }};
+                    var ydata  = {{ platforms_counts|tojson }};
+                    option = {
+                            title: {
+                            subtext: '不含已下线设备'
+                            },
+                            backgroundColor: "#ffffff",
+                            tooltip: {
+                                show: true,
+                                formatter: "{b}: {c}",
+                                trigger: "axis",
+                                axisPointer: {
+                                    type:'shadow',
+                                    shadowStyle :{
+                                        color:'rgba(48,95,237,0.1)'
+                                    }
+                              },
+                              backgroundColor: "rgba(255,255,255,1)",
+                              padding: [5, 10],
+                              textStyle: {
+                                color: "#7588E4"
+                              },
+                              extraCssText: "box-shadow: 0 0 5px rgba(0,0,0,0.3)"
+                            },
+                             legend: {
+                              right: 20,
+                              orient: "vertical",
+                              data: ["设备数量"]
+                            },
+                            xAxis: {
+                              data: xdata,
+                              axisLine: {
+                                lineStyle: {
+                                  color: "#EDEDED"
+                                }
+                              },
+                              axisLabel: {
+                                color: "#666666",
+                                fontSize: 14
+                              }
+                            },
+                            yAxis: {
+                              nameTextStyle: {
+                                color: "#666666",
+                                fontSize: 14
+                              },
+                              axisLine: {
+                                lineStyle: {
+                                  color: "#EDEDED"
+                                }
+                              },
+                              axisLabel: {
+                                color: "#666666",
+                                fontSize: 14
+                              },
+                              splitLine: {
+                                show: true,
+                                lineStyle: {
+                                  color: "#EDEDED"
+                                }
+                              },
+                              minInterval : 1
+                            },
+                            series: [
+                              {
+                                name : '设备数量',
+                                type: "bar",
+                                barWidth: 18,
+                                itemStyle: {
+                                  normal: {
+                                    color: new echarts.graphic.LinearGradient(
+                                      0,
+                                      0,
+                                      0,
+                                      1,
+                                      [
+                                         /* 4364F7*/
+                                        {
+                                          offset: 0,
+                                          color: "#6FB1FC"
+                                        },
+
+                                        {
+                                          offset: 0.8,
+                                          color: "#0052D4"
+                                        }
+                                      ],
+                                      false
+                                    )
+                                  }
+                                },
+                                data: ydata,
+                                 animationType: 'scale',
+                                animationEasing: 'elasticOut',
+                                animationDelay: function (idx) {
+                                  return Math.random() * 200;
+                                }
+                              }
+                            ]
+                          };
+                    if (option && typeof option === "object") {
+                        myChart.setOption(option, true);
+                    }
+                </script>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="row">
+            <div class="x_panel tile fixed_height_250">
+            <div class="x_title">
+                <h2>操作系统</h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <div id="chart2" style="width: 100%;height:200px;">
+                     <script type="text/javascript">
+                var dom = document.getElementById("chart2");
+                var myChart = echarts.init(dom);
+                option = null;
+                option = {
+                    tooltip : {
+                        trigger: 'item',
+                        formatter: "{a} <br/>{b} : {c} ({d}%)"
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        left: 'left',
+                        data: ['Linux','HP-UX','AIX']
+                    },
+                    series : [
+                        {
+                            name: '系统',
+                            type: 'pie',
+                            radius : '55%',
+                            center: ['50%', '45%'],
+                            data:[
+                                {value:{{ hpux_nums|tojson }}, name:'HP-UX'},
+                                {value:{{ aix_nums|tojson }}, name:'AIX'},
+                                {value:{{ linux_nums|tojson }}, name:'Linux'}
+                            ],
+                            itemStyle: {
+                                emphasis: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            }
+                        }
+                    ]
+                };
+                if (option && typeof option === "object") {
+                    myChart.setOption(option, true);
+                }
+                </script>
+                </div>
+            <div class="clearfix"></div>
+            </div>
+        </div>
+            </div>
+            <div class="row">
+            <div class="x_panel tile" style="height: 300px;">
+            <div class="x_title">
+                <h2>机房分布</h2>
+                <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+                <div id="chart3" style="width: 100%;height:250px;">
+                     <script type="text/javascript">
+                var dom = document.getElementById("chart3");
+                var myChart = echarts.init(dom);
+                var app = {};
+                option = null;
+                option = {
+                    tooltip : {
+                        trigger: 'item',
+                        formatter: "{a} <br/>{b} : {c} ({d}%)"
+                    },
+
+                    series : [
+                        {
+                            name: '机房',
+                            type: 'pie',
+                            radius : '55%',
+                            center: ['50%', '50%'],
+                            data: {{ engine_rooms_values|tojson }},
+                            itemStyle: {
+                                emphasis: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            }
+                        }
+                    ]
+                };
+                if (option && typeof option === "object") {
+                    myChart.setOption(option, true);
+                }
+                </script>
+                </div>
+            <div class="clearfix"></div>
+            </div>
+        </div>
+            </div>
+        </div>
+        <div class="col-md-6" style="height: 600px">
+            <div class="x_panel">
+                <div class="x_title">
+                <h2>设备类型</h2>
+                <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                    <div id="chart4" style="width: 100%;height:490px;">
+                    <script type="text/javascript">
+                var dom = document.getElementById("chart4");
+                var myChart = echarts.init(dom);
+                var app = {};
+                option = null;
+                app.title = '嵌套环形图';
+
+                option = {
+                "backgroundColor": "#fff",
+                "legend": {
+                    top:30,
+                    "data": {{ device_types|tojson }},
+                    "type": "scroll"
+                },
+                "series": [{
+                    "name": "管线类型",
+                    "type": "pie",
+                    "radius": "55%",
+                    "center": ["50%", "60%"],
+                    "data": {{ device_types_values|tojson }},
+                    "itemStyle": {
+                        "normal": {
+                            "label": {
+                                "show": true,
+                                "formatter": "{b} : {c} ({d}%)"
+                            },
+                            "labelLine": {
+                                "show": true
+                            }
+                        },
+                        "emphasis": {
+                            "label": {
+                                "show": true,
+                                "formatter": "{b}\n{c} ({d}%)",
+                                "position": "center",
+                                "textStyle": {
+                                    "fontSize": "15"
+                                }
+                            }
+                        }
+                    }
+                }]
+            };
+                if (option && typeof option === "object") {
+                    myChart.setOption(option, true);
+                }
+                </script>
+                    </div>
+                </div>
+                </div>
+        </div>
     </div>
 </div>
 

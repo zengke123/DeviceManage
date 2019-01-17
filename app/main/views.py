@@ -1,5 +1,5 @@
 from flask import render_template, request, jsonify, send_from_directory
-from sqlalchemy import distinct
+from sqlalchemy import distinct, func, or_
 from . import main
 from .. import db
 from ..models import Host, Capacity
@@ -10,7 +10,27 @@ from ..filesetting import DOWNLOAD_FOLDER
 @main.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    # 按业务平台分类汇总数量
+    result = db.session.query(Host.platform, func.count('*').label("count")).filter(Host.status=="在网").group_by(Host.platform).all()
+    platforms = [x[0] for x in result]
+    platforms_counts = [x[1] for x in result]
+    device_nums = sum(platforms_counts)
+    # 按机房分类获取数量
+    result_jf = db.session.query(Host.engine_room, func.count('*').label("count")).filter(Host.status=="在网").group_by(Host.engine_room).all()
+    engine_rooms = [x[0] for x in result_jf]
+    engine_rooms_values= [{"value": v, "name": k} for k, v in result_jf]
+    # 按设备类型分类获取数量
+    result_type = db.session.query(Host.device_type, func.count('*').label("count")).filter(Host.status=="在网").group_by(Host.device_type).all()
+    device_types = [x[0] for x in result_type]
+    device_types_values = [{"value": v, "name": k} for k, v in result_type]
+    # 统计操作系统
+    linux_nums = db.session.query(func.count('*').label("count")).filter(
+        or_(Host.os_version.like("linux%"), Host.os_version.like("redhat%"))).all()
+    hpux_nums = db.session.query(func.count('*').label("count")).filter(
+        or_(Host.os_version.like("HP%"), Host.os_version.like("hp%"))).all()
+    aix_nums = db.session.query(func.count('*').label("count")).filter(
+        or_(Host.os_version.like("AIX%"), Host.os_version.like("aix%"))).all()
+    return render_template('index.html', **locals())
 
 
 @main.route('/hardware')
@@ -50,9 +70,9 @@ def get_detail():
     pt = request.form.get('pt')
     jf = request.form.get('jf')
     jq = request.form.get('jq')
-    lx = request.form.get('lx','')
+    lx = request.form.get('lx', '')
     zj = request.form.get('zj')
-    os_ver = request.form.get('os_ver','')
+    os_ver = request.form.get('os_ver', '')
     kw_temp = {
         "platform": pt if pt and pt not in temp else None,
         "engine_room": jf if jf and jf not in temp else None,
@@ -149,7 +169,7 @@ def get_capacity_cluster():
     cluster = [x[0] for x in clusters]
     result = {
         "cluster": cluster
-   }
+    }
     return jsonify(result)
 
 
@@ -164,9 +184,7 @@ def get_capacity():
         "platform": pt if pt and pt not in temp else None,
         "cluster": jq if jq and jq not in temp else None
     }
-    print(kw_temp)
     kw = {k: v for k, v in kw_temp.items() if v}
-    print(kw)
     hosts = db.session.query(Capacity).filter_by(**kw).all()
     datas = []
     for host in hosts:

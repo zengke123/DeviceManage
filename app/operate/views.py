@@ -59,20 +59,24 @@ def allowed_file(filename):
 @login_required
 def load():
     import os
+    errors = ""
     if request.method == 'POST':
+        # 请求中无文件
         if 'file' not in request.files:
             return redirect(request.url)
         file = request.files['file']
+        # 文件名为空
         if file.filename == '':
             return redirect(request.url)
+        # 文件符合要求
         if file and allowed_file(file.filename):
             data_type = request.form.get("fieldvalue")
-            print(data_type)
             filename = secure_filename(file.filename)
             file.save(os.path.join(UPLOAD_FOLDER, filename))
             nums = load_to_db(data_type, UPLOAD_FOLDER+filename)
             return  render_template("load_success.html", nums=nums)
-    return render_template("load_device.html")
+        errors = '上传文件失败，只支持xls/xlsx格式'
+    return render_template("load_device.html",errors=errors)
 
 
 

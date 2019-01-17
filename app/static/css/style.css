@@ -144,3 +144,14 @@ body{background:#fff;color:#5B5B5D;font-family:"Microsoft YaHei","Segoe UI","Luc
 		padding: 10px 20px;
 	}
 }
+
+.x_panel {
+    width: 100%;
+    padding: 10px 17px;
+    display: inline-block;
+    background: #fff;
+    border: 1px solid #E6E9ED;
+    -webkit-column-break-inside: avoid;
+    opacity: 1;
+    transition: all .2s ease;
+}

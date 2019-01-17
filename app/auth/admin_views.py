@@ -22,5 +22,5 @@ class IndexModelView(BaseView):
     @expose('/')
     def index(self):
         # Get URL for the test view method
-        user_list_url = url_for('main.index')
-        return self.render('index.html', user_list_url=user_list_url)
+        user_list_url = url_for('main.hardware')
+        return self.render('hardwareInfo.html', user_list_url=user_list_url)

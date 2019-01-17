@@ -5,6 +5,7 @@
 <div class="container">
     <h2 align="left">批量导入<small></small></h2><br>
     <div class="alert alert-warning" role="alert">下载模板进行批量导入，请勿修改字段顺序</div>
+    <h5 style="color: #761c19" id="errors">{{ errors }}</h5>
     <form method=post enctype=multipart/form-data>
         <table class="table table-hover"><tbody>
         <tr>
@@ -20,7 +21,6 @@
             </td>
         </tr>
         <tr><td id="buttonarea">
-
         </td></tr>
     </tbody></table>
     </form>
@@ -29,6 +29,7 @@
     $("#value1").change(function() {
         var checkText = $("#value1").find("option:selected").text();
         $("#buttonarea").empty();
+        $("#errors").empty();
         document.getElementById("Download").setAttribute('href',"#");
         if(checkText!=="选择数据类型"){
             var content="<input type=file name=file>\n" +
