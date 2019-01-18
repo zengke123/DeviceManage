@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, send_from_directory
+from flask import render_template, request, jsonify, send_from_directory, redirect
 from sqlalchemy import distinct, func, or_
 from . import main
 from .. import db
@@ -282,3 +282,18 @@ def download_file(filename):
 @login_required
 def custom():
     return render_template('customInfo.html')
+
+
+@main.route('/search', methods=["GET", "POST"])
+@login_required
+def search():
+    hostname = request.form.get("hostname")
+    if hostname:
+        search_str = str(hostname) + "%"
+        search_result = db.session.query(Host).filter(Host.hostname.like(search_str)).all()
+        print(search_result)
+        search_nums = len(search_result)
+        return render_template('search.html',search_result=search_result, search_nums=search_nums)
+    else:
+        return redirect(request.referrer)
+
