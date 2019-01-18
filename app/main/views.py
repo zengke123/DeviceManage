@@ -22,7 +22,8 @@ def index():
     # 按设备类型分类获取数量
     result_type = db.session.query(Host.device_type, func.count('*').label("count")).filter(Host.status=="在网").group_by(Host.device_type).all()
     device_types = [x[0] for x in result_type]
-    device_types_values = [{"value": v, "name": k} for k, v in result_type]
+    device_types_nums = [x[1] for x in result_type]
+    # device_types_values = [{"value": v, "name": k} for k, v in result_type]
     # 统计操作系统
     linux_nums = db.session.query(func.count('*').label("count")).filter(
         or_(Host.os_version.like("linux%"), Host.os_version.like("redhat%"))).all()

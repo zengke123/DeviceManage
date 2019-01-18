@@ -8,14 +8,13 @@
 {% block body %}
 <div class="container">
     <div class="row">
-        <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="col-md-12">
             <div class="dashboard_graph">
                 <div class="row x_title">
                     <div class="col-md-6">
                         <h3>分业务设备数量 <small>总数：{{ device_nums }}</small></h3>
                     </div>
                 </div>
-                <div class="col-md-12 col-sm-12 col-xs-12">
                     <div id="chart1" class="demo-placeholder" style="padding: 0px; position: relative;width: 100%;height:250px;">
                         <script type="text/javascript">
                     var dom = document.getElementById("chart1");
@@ -61,7 +60,7 @@
                               },
                               axisLabel: {
                                 color: "#666666",
-                                fontSize: 14
+                                fontSize: 12
                               }
                             },
                             yAxis: {
@@ -128,7 +127,6 @@
                     }
                 </script>
                     </div>
-                </div>
                 <div class="clearfix"></div>
             </div>
         </div>
@@ -164,6 +162,7 @@
                             type: 'pie',
                             radius : '55%',
                             center: ['50%', '45%'],
+                            color:['#0D56A6','#689AD3','#FF9A00'],
                             data:[
                                 {value:{{ hpux_nums|tojson }}, name:'HP-UX'},
                                 {value:{{ aix_nums|tojson }}, name:'AIX'},
@@ -189,61 +188,15 @@
         </div>
             </div>
             <div class="row">
-            <div class="x_panel tile" style="height: 300px;">
+            <div class="x_panel tile" style="height: 320px;">
             <div class="x_title">
                 <h2>机房分布</h2>
                 <div class="clearfix"></div>
             </div>
             <div class="x_content">
                 <div id="chart3" style="width: 100%;height:250px;">
-                     <script type="text/javascript">
+                <script type="text/javascript">
                 var dom = document.getElementById("chart3");
-                var myChart = echarts.init(dom);
-                var app = {};
-                option = null;
-                option = {
-                    tooltip : {
-                        trigger: 'item',
-                        formatter: "{a} <br/>{b} : {c} ({d}%)"
-                    },
-
-                    series : [
-                        {
-                            name: '机房',
-                            type: 'pie',
-                            radius : '55%',
-                            center: ['50%', '50%'],
-                            data: {{ engine_rooms_values|tojson }},
-                            itemStyle: {
-                                emphasis: {
-                                    shadowBlur: 10,
-                                    shadowOffsetX: 0,
-                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                }
-                            }
-                        }
-                    ]
-                };
-                if (option && typeof option === "object") {
-                    myChart.setOption(option, true);
-                }
-                </script>
-                </div>
-            <div class="clearfix"></div>
-            </div>
-        </div>
-            </div>
-        </div>
-        <div class="col-md-6" style="height: 600px">
-            <div class="x_panel">
-                <div class="x_title">
-                <h2>设备类型</h2>
-                <div class="clearfix"></div>
-                </div>
-                <div class="x_content">
-                    <div id="chart4" style="width: 100%;height:490px;">
-                    <script type="text/javascript">
-                var dom = document.getElementById("chart4");
                 var myChart = echarts.init(dom);
                 var app = {};
                 option = null;
@@ -252,16 +205,17 @@
                 option = {
                 "backgroundColor": "#fff",
                 "legend": {
-                    top:30,
-                    "data": {{ device_types|tojson }},
+                    top:5,
+                    "data": {{ engine_rooms|tojson }},
                     "type": "scroll"
                 },
                 "series": [{
-                    "name": "管线类型",
+                    "name": "设备类型",
                     "type": "pie",
                     "radius": "55%",
                     "center": ["50%", "60%"],
-                    "data": {{ device_types_values|tojson }},
+                    "color":['#4186D3','#689AD3','#274F7D','#04356C','#FFC873','#A66400','#BF8730','#FF9A00','#0D56A6','#FFB440'],
+                    "data": {{ engine_rooms_values|tojson }},
                     "itemStyle": {
                         "normal": {
                             "label": {
@@ -288,6 +242,128 @@
                 if (option && typeof option === "object") {
                     myChart.setOption(option, true);
                 }
+                </script>
+                </div>
+            <div class="clearfix"></div>
+            </div>
+        </div>
+            </div>
+        </div>
+        <div class="col-md-6" style="height: 500px">
+            <div class="x_panel">
+                <div class="x_title">
+                <h2>设备类型</h2>
+                <div class="clearfix"></div>
+                </div>
+                <div class="x_content">
+                    <div id="chart4" style="width: 100%;height:450px;">
+                    <script type="text/javascript">
+                    var dom = document.getElementById("chart4");
+                    var myChart = echarts.init(dom);
+                    option = null;
+                    var colorList = {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 1,
+                        y2: 0,
+                        colorStops: [{
+                            offset: 0,
+                            color: '#FF9A00' // 0% 处的颜色
+                        }, {
+                            offset: 1,
+                            color: '#FFC873' // 100% 处的颜色
+                        }],
+                        globalCoord: false // 缺省为 false
+                    };
+                    var option = {
+                        tooltip: {
+                            trigger: 'item',
+                            axisPointer: {
+                                type: 'shadow'
+                            },
+                            extraCssText:'width:auto;height:auto;'
+                        },
+
+                        grid: {
+                            x: 0,
+                            y:10,
+                            x2:30,
+                            y2: 0,
+                            containLabel: true
+                        },
+
+                        xAxis: {
+                            type: 'value',
+                            max:300,
+                            interval:30,
+                            boundaryGap: [0, 0.01],
+                            axisLine: {
+                                show: true,
+                                lineStyle: {
+                                    color: '#161d2c'
+                                }
+                            },
+                            axisLabel: {
+                                show: true,
+                                interval: '0',
+                                textStyle: {
+                                    fontSize: 10,
+                                    color: '#666666'
+                                },
+                                rotate:0
+                            },
+                            axisTick:{
+                                show:false
+                            },
+                            splitLine:{
+                                show:false
+                            }
+
+                        },
+                        yAxis: {
+                            type: 'category',
+                            axisLine: {
+                                show: true,
+                                lineStyle: {
+                                    color: '#8597c1'
+                                },
+                                symbol: ['none', 'arrow'],
+                                symbolSize: [4, 4]
+
+                            },
+                            axisLabel: {
+                                show: true,
+                                textStyle: {
+                                    fontSize: 12,
+                                    color: '#666666'
+                                }
+                            },
+                            splitLine:{
+                                show:false
+                            },
+                            axisTick:{
+                                show:false
+                            },
+                            data: {{ device_types|tojson }}
+                        },
+                        series: [
+                            {
+                                type: 'bar',
+                                data: {{ device_types_nums|tojson }},
+                                itemStyle: {
+                                    color: function (params) {
+                                        return colorList;
+                                    }
+                                },
+                                barWidth: '40%'
+                            }
+
+                        ]
+                    };
+                    if (option && typeof option === "object") {
+                        myChart.setOption(option, true);
+                    }
                 </script>
                     </div>
                 </div>
