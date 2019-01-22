@@ -4,55 +4,46 @@
 {% block body %}
 <div class="navbar-wrapper" id="daohang">
   <div class="container" id="container">
-    <form action="fmsosmnr" id="OSMNRForm" name="OSMNRForm" method="post" enctype="multipart/form-data">
-        <h2 align="center">自定义查询-暂不支持<small></small></h2>
+    <form id="OSMNRForm" name="OSMNRForm" method="post" enctype="multipart/form-data">
+        <h2 align="center">自定义查询<small></small></h2>
         <div class="container-fluid">
         <div class="row-fluid">
         <div class="span12">
         <table class="table table-hover"><tbody>
         <tr>
-            <td>
-            <select id="fieldvalue" name="fieldvalue" class="form-control" onchange="selectChange(1)">
-            <option value="">选择平台</option>
-            <option value="92">SCP</option>
-            <option value="93">SCCL</option>
-            <option value="94">VC</option>
-            <option value="95">SICP</option>
-            <option value="103">SCPAS</option>
-            <option value="104">SCCLAS</option>
-            <option value="109">SMP</option>
-            <option value="110">SCCLMGR</option>
-            <option value="111">CCP</option>
-            <option value="477">CENTREX</option>
+            <td width="20%">
+            <select id="value1" name="fieldvalue" class="form-control" onchange="">
+            <option value="">选择类型一</option>
+                {% for key, value in value_type.items() %}
+                <option value="{{ value }}">{{ key }}</option>
+                {% endfor %}
             </select>
-            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
             </td>
-            <td>
-            <select id="fieldvalue" name="fieldvalue" class="form-control" onchange="selectChange(1)">
-            <option value="">选择集群</option>
+            <td width="30%">
+            <select id="value2" name="fieldvalue" class="form-control" onchange="">
+            <option value="">选择</option>
             </select>
-            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
             </td>
-            <td>
-            <select id="fieldvalue" name="fieldvalue" class="form-control" onchange="selectChange(1)">
-            <option value="">选择机房</option>
+            <td width="20%">
+            <select id="value3" name="fieldvalue" class="form-control" onchange="">
+            <option value="">选择类型二</option>
             </select>
-            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
+            </td>
+            <td width="30%">
+            <select id="value4" name="fieldvalue" class="form-control" onchange="">
+            <option value="">选择</option>
+            </select>
             </td>
         </tr>
         <tr>
             <td>
-            <input id="fieldvalue" name="fieldvalue" type="text" class="form-control" placeholder="查询 账户" value="" onkeypress="EnterPress(event)">
-            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
             </td>
+            <td></td>
+            <td></td>
             <td>
-            <input id="fieldvalue" name="fieldvalue" type="text" class="form-control" placeholder="查询 机房名称" value="" onkeypress="EnterPress(event)">
-            <input type="hidden" id="fieldvalue2" name="fieldvalue2" size="0" value="">
-            </td>
-            <td>
-            <button class="btn btn-primary" type="button" onclick="">查询</button>
-            <button type="button" class="btn btn-default" onclick="">导出</button>
-            <button type="button" class="btn btn-default" onclick="">Excel</button>
+            <button class="btn btn-primary" type="button" onclick="query()">查询</button>
+            <button type="button" class="btn btn-default" onclick="unload_excel()">导出</button>
+            <a type="button" class="btn btn-default" id="DOWNLOAD" href="">Excel</a>
             </td>
         </tr>
         </tbody></table>
@@ -60,30 +51,150 @@
         <div class="container-fluid">
         <div class="row-fluid">
         <div class="span12">
-        <table id="datalisttable" class="table table-hover">
+            <div class="table-responsive">
+        <table id="datalisttable" class="table table-hover" style="min-width:2000px;">
         <thead>
           <tr>
-          <th><input id="selectcheck" type="checkbox" onclick="javascript:dealselectcheck();"></th>
           <th>平台</th>
           <th>集群</th>
           <th>主机</th>
           <th>设备类型</th>
+          <th>设备厂家</th>
           <th>设备型号</th>
           <th>序列号</th>
+          <th>账户</th>
+          <th>业务版本</th>
+          <th>软件模块</th>
+          <th>内网IP</th>
+          <th>映射IP</th>
+          <th>操作系统</th>
           <th>机房</th>
-          <th>机架</th>
+          <th>机架号</th>
           <th>电源柜</th>
-          <th>状态</th>
+          <th>入网时间</th>
           <th>过保时间</th>
+          <th>状态</th>
           </tr>
         </thead>
-          <tbody>
+          <tbody id="tablevalue">
           </tbody></table>
+            </div>
 </div>
 </div>
 </div>
     </form>
   </div>
 </div>
+<script type="text/javascript">
+    $("#value1").change(function() {
+        var checkText=$("#value1").find("option:selected").text();
+        $.ajax({
+            url: "{{ url_for('main.get_custom_info') }}",
+            type: 'POST',
+            data: {"query_type": checkText},
+            success:function(data) {
+                $("#value2").empty();
+                var content = "<option value=''>选择" + data["query_type"] + "</option>";
+                $("#value2").append(content);
+                $.each(data["cols"], function (idx, obj) {
+                    var temp = "<option value=''>" + obj + "</option>";
+                    $("#value2").append(temp)
+                });
+                $("#value3").empty();
+                var content2 = "<option value=''>选择类型二</option>";
+                $("#value3").append(content2);
+                $.each(data["value_type2"], function (idx, obj) {
+                    var temp = "<option value=''>" + obj + "</option>";
+                    $("#value3").append(temp)
+                });
+            }
+        })
+    });
 
+    $("#value3").change(function() {
+        var checkText=$("#value3").find("option:selected").text();
+        $.ajax({
+            url: "{{ url_for('main.get_custom_info2') }}",
+            type: 'POST',
+            data: {"query_type": checkText},
+            success:function(data) {
+                $("#value4").empty();
+                var content = "<option value=''>选择" + data["query_type"] + "</option>";
+                $("#value4").append(content);
+                $.each(data["cols"], function (idx, obj) {
+                    var temp = "<option value=''>" + obj + "</option>";
+                    $("#value4").append(temp)
+                });
+            }
+        })
+    });
+
+    function query() {
+        var type1=$("#value1").find("option:selected").text();
+        var type1_value=$("#value2").find("option:selected").text();
+        var type2=$("#value3").find("option:selected").text();
+        var type2_value=$("#value4").find("option:selected").text();
+        $.ajax({   //2、发送给后端
+            url: "{{ url_for('main.get_custom_detail') }}",
+            type: 'POST',
+            data: { "type1": type1,
+                    "type1_value": type1_value,
+                    "type2": type2,
+                    "type2_value": type2_value
+                },
+            success:function(data) {
+                if(data["flag"]==="success"){
+                    $("#tablevalue").empty();
+                    $.each(data["hosts"], function(idx,obj){
+	                var temp="<tr>"+
+                        "<td>"+obj.platform+"</td>"+
+                        "<td>"+obj.cluster+"</td>"+
+                        "<td>"+obj.hostname+"</td>"+
+                        "<td>"+obj.device_type+"</td>"+
+                        "<td>"+obj.manufacturer+"</td>"+
+                        "<td>"+obj.device_model+"</td>"+
+                        "<td>"+obj.serial+"</td>"+
+                        "<td>"+obj.account+"</td>"+
+                        "<td>"+obj.version+"</td>"+
+                        "<td>"+obj.software_version+"</td>"+
+                        "<td>"+obj.local_ip+"</td>"+
+                        "<td>"+obj.nat_ip+"</td>"+
+                        "<td>"+obj.os_version+"</td>"+
+                        "<td>"+obj.engine_room+"</td>"+
+                        "<td>"+obj.frame_number+"</td>"+
+                        "<td>"+obj.power_frame_number+"</td>"+
+                        "<td>"+obj.net_time+"</td>"+
+                        "<td>"+obj.period+"</td>"+
+                        "<td>"+obj.status+"</td>"+
+                        "</tr>";
+	                $("#tablevalue").append(temp)
+                     });
+                 }
+                else alert("查询失败")
+            }
+        });
+    }
+
+    function unload_excel() {
+        var set = [];
+        $('#datalisttable').find('tr').each(function() {
+            var row = [];
+            $(this).find('th,td').each(function() {
+                row.push($(this).text().trim());
+            });
+            set.push(row);
+            });
+        $.ajax({
+            url: "{{ url_for('main.unload_excel') }}",
+            type: "post",
+            data: {"data":JSON.stringify(set)},
+            success:function(data) {
+                if(data["flag"]==="success"){
+                    alert("数据导出成功,点击Excel下载");
+                    document.getElementById("DOWNLOAD").setAttribute('href',"/info/download_file/"+data["file"]);
+                }
+            }
+        });
+    }
+</script>
 {% endblock %}

@@ -242,11 +242,13 @@ def delete_capacity_id():
     return jsonify(result)
 
 
+# 导出查询结果
 @main.route('/unload', methods=["GET", "POST"])
 @login_required
 def unload_excel():
     import pandas, datetime, json, os
     # path = "/Users/EB/PycharmProjects/DeviceManage/unloadfiles/"
+    # 清空目录
     try:
         filelist = os.listdir(DOWNLOAD_FOLDER)
         for file in filelist:
@@ -255,11 +257,22 @@ def unload_excel():
         print(str(e))
     temp = request.form.get('data')
     if temp:
+        # 需转为json, 不然读取时为字符串
         data_list = json.loads(temp)
-        datas = [x[:-1] for x in data_list]
+        # 最后一列若为修改删除去掉
+        datas=[]
+        for x in data_list:
+            if x[-1]=="操作"or x[-1]=="修改删除":
+                datas.append(x[:-1])
+            else:
+                datas.append(x)
+        # datas = [x if "操作" not in x[-1] or "修改" not in  x[-1] else x[:-1] for x in data_list]
         filename = datetime.datetime.now().strftime("%Y%m%d%H%M%S") + ".xlsx"
+        # 转成pandas  DataFrame格式
         df = pandas.DataFrame(datas[1:], columns=datas[0])
+        # 导出excel
         df.to_excel(DOWNLOAD_FOLDER + filename, index=False)
+        # 返回生成的excel文件名
         result = {
             "flag": "success",
             "file": filename
@@ -270,6 +283,7 @@ def unload_excel():
     return jsonify(result)
 
 
+# 下载导出的文件
 @main.route('/download_file/<filename>')
 @login_required
 def download_file(filename):
@@ -278,22 +292,123 @@ def download_file(filename):
     return send_from_directory(DOWNLOAD_FOLDER, filename=filename, as_attachment=True)
 
 
-@main.route('/custom')
-@login_required
-def custom():
-    return render_template('customInfo.html')
-
-
 @main.route('/search', methods=["GET", "POST"])
 @login_required
 def search():
     hostname = request.form.get("hostname")
     if hostname:
         search_str = str(hostname) + "%"
+        # 按主机名模糊搜索
         search_result = db.session.query(Host).filter(Host.hostname.like(search_str)).all()
-        print(search_result)
+        # 获取结果条数
         search_nums = len(search_result)
         return render_template('search.html',search_result=search_result, search_nums=search_nums)
     else:
         return redirect(request.referrer)
 
+
+# 字段名与数据库表属性映射
+value_type_map = {
+    "平台": ("platform", Host.platform),
+    "网元": ("cluster", Host.cluster),
+    "设备类型": ("device_type", Host.device_type),
+    "设备型号": ("device_model", Host.device_model),
+    "业务版本": ("version", Host.version),
+    "软件模块": ("software_version", Host.software_version),
+    "操作系统": ("os_version", Host.os_version),
+    "机房": ("engine_room", Host.engine_room),
+    "状态": ("status", Host.status)
+}
+
+
+# 查询对应类型的数据
+def query_by_type(query_type):
+    global value_type_map
+    query_col = value_type_map.get(query_type, None)
+    if query_col:
+        cols_temp = db.session.query(distinct(query_col[1])).all()
+        cols = [x[0] for x in cols_temp]
+    else:
+        cols = []
+    all_types = list(value_type_map.keys())
+    return all_types, cols
+
+
+@main.route('/custom')
+@login_required
+def custom():
+    # 自定义查询支持的类别
+    # value_type = {
+    #     "平台": "platform",
+    #     "网元": "cluster",
+    #     "设备类型": "device_type",
+    #     "设备型号": "device_model",
+    #     "业务版本": "version",
+    #     "软件模块": "software_version",
+    #     "操作系统": "os_version",
+    #     "机房": "engine_room",
+    #     "状态": "status"
+    # }
+    value_type = {k: v[0] for k, v in value_type_map.items()}
+    return render_template('customInfo.html', value_type=value_type)
+
+
+@main.route('/get_custom_info', methods=["GET", "POST"])
+@login_required
+def get_custom_info():
+    query_type = request.form.get('query_type')
+    if query_type != "选择类型一":
+        # 获取选中的查询类别
+        all_types, cols = query_by_type(query_type)
+        # 获取查询类型二，去除已选择的查询类别
+        all_types.remove(query_type)
+        result = {
+            "query_type": query_type,
+            "cols": cols,
+            "value_type2": all_types
+        }
+    else:
+        result = {
+            "query_type": "选择",
+            "cols": [],
+            "value_type2": []
+        }
+    return jsonify(result)
+
+
+# 自定义查询页面查询条件二
+@main.route('/get_custom_info2', methods=["GET", "POST"])
+@login_required
+def get_custom_info2():
+    query_type = request.form.get('query_type')
+    _, cols = query_by_type(query_type)
+    result = {
+        "query_type": query_type,
+        "cols": cols
+    }
+    return jsonify(result)
+
+
+@main.route('/get_custom_detail', methods=["GET", "POST"])
+@login_required
+def get_custom_detail():
+    global value_type_map
+    # 获取选择的查询项
+    type1 = request.form.get('type1')
+    type1_value = request.form.get('type1_value')
+    type2 = request.form.get('type2')
+    type2_value = request.form.get('type2_value')
+    kw = {}
+    # 请求参数中有“选择”时，即为未选择查询项，忽略
+    for k, v in [(type1, type1_value),(type2, type2_value)]:
+        if "选择" not in k and  "选择" not in v:
+            kw.update({value_type_map.get(k)[0]: v})
+    hosts = db.session.query(Host).filter_by(**kw).all()
+    datas = []
+    for host in hosts:
+        datas.append(host.to_json())
+    result = {
+        "flag": "success",
+        "hosts": datas
+    }
+    return jsonify(result)
