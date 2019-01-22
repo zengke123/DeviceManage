@@ -49,6 +49,7 @@ def hardware():
     return render_template('hardwareInfo.html', platform=platform, device_type=device_type, show_cols=show_cols)
 
 
+# 硬件查询页面,选中平台后,查询并返回网元\机房等信息
 @main.route('/get_cluster', methods=["GET", "POST"])
 @login_required
 def get_cluster():
@@ -64,6 +65,7 @@ def get_cluster():
     return jsonify(result)
 
 
+# 查询按钮实际调用的函数
 @main.route('/get_detail', methods=["GET", "POST"])
 @login_required
 def get_detail():
@@ -74,6 +76,7 @@ def get_detail():
     lx = request.form.get('lx', '')
     zj = request.form.get('zj')
     os_ver = request.form.get('os_ver', '')
+    # 构造查询条件
     kw_temp = {
         "platform": pt if pt and pt not in temp else None,
         "engine_room": jf if jf and jf not in temp else None,
@@ -82,6 +85,7 @@ def get_detail():
         "hostname": zj if zj and zj not in temp else None,
         "os_version": os_ver if os_ver and os_ver not in temp else None
     }
+    # 去除查询条件为空的
     kw = {k: v for k, v in kw_temp.items() if v}
     hosts = db.session.query(Host).filter_by(**kw).all()
     datas = []
@@ -94,6 +98,7 @@ def get_detail():
     return jsonify(result)
 
 
+# 设备信息修改页面中,根据id获取数据返回,显示在修改页面表单中
 @main.route('/get_detail_id', methods=["GET", "POST"])
 @login_required
 def get_detail_id():
@@ -106,6 +111,7 @@ def get_detail_id():
     return jsonify(result)
 
 
+# 根据id修改设备信息
 @main.route('/modify_by_id', methods=["GET", "POST"])
 @login_required
 def modify_by_id():
@@ -121,6 +127,7 @@ def modify_by_id():
     return jsonify(result)
 
 
+# 根据id 删除设备信息
 @main.route('/delete_by_id', methods=["GET", "POST"])
 @login_required
 def delete_by_id():
@@ -181,23 +188,28 @@ def get_capacity():
     temp = ["选择平台", "选择网元"]
     pt = request.form.get('pt')
     jq = request.form.get('jq')
+    # 构造数据库查询条件的dict
     kw_temp = {
         "platform": pt if pt and pt not in temp else None,
         "cluster": jq if jq and jq not in temp else None
     }
+    # 去除查询条件为空即未选择的
     kw = {k: v for k, v in kw_temp.items() if v}
+    # 根据条件查询结果
     hosts = db.session.query(Capacity).filter_by(**kw).all()
     datas = []
     for host in hosts:
+        # 转成dict字典,否转前端接收后无法正常读取
         datas.append(host.to_json())
     result = {
         "flag": "success",
         "hosts": datas
     }
-    print(result)
+    # 转成json传输
     return jsonify(result)
 
 
+# 根据id查询系统容量信息
 @main.route('/get_capacity_id', methods=["GET", "POST"])
 @login_required
 def get_capacity_id():
@@ -214,9 +226,11 @@ def get_capacity_id():
 @main.route('/modify_capacity_id', methods=["GET", "POST"])
 @login_required
 def modify_capacity_id():
+    # 获取前端提交的json数据
     datas = request.get_json()
     try:
         device_id = datas.get('id')
+        # update数据库表数据
         db.session.query(Capacity).filter(Capacity.id == device_id).update(datas)
         db.session.commit()
     except Exception as e:
@@ -230,8 +244,10 @@ def modify_capacity_id():
 @main.route('/delete_capacity_id', methods=["GET", "POST"])
 @login_required
 def delete_capacity_id():
+    # 获取前端提交的待删除的id
     device_id = request.form.get('id')
     try:
+        # 匹配id进行删除
         to_delete = Capacity.query.filter(Capacity.id == device_id).first()
         db.session.delete(to_delete)
         db.session.commit()
@@ -279,7 +295,8 @@ def unload_excel():
         }
     else:
         result = {"flag": "fail",
-                  "file": ""}
+                  "file": ""
+                  }
     return jsonify(result)
 
 
@@ -292,6 +309,7 @@ def download_file(filename):
     return send_from_directory(DOWNLOAD_FOLDER, filename=filename, as_attachment=True)
 
 
+# 主机名模糊搜索
 @main.route('/search', methods=["GET", "POST"])
 @login_required
 def search():
@@ -334,6 +352,7 @@ def query_by_type(query_type):
     return all_types, cols
 
 
+# 自定义查询主页
 @main.route('/custom')
 @login_required
 def custom():
@@ -353,6 +372,7 @@ def custom():
     return render_template('customInfo.html', value_type=value_type)
 
 
+# 自定义查询中查询类型一，查询选中的类型
 @main.route('/get_custom_info', methods=["GET", "POST"])
 @login_required
 def get_custom_info():
@@ -389,6 +409,7 @@ def get_custom_info2():
     return jsonify(result)
 
 
+# 自定义查询，获取查询结果返回
 @main.route('/get_custom_detail', methods=["GET", "POST"])
 @login_required
 def get_custom_detail():

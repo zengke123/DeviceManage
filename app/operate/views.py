@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from ..filesetting import UPLOAD_FOLDER, ALLOWED_EXTENSIONS, TEMPLATE_FOLDER
 
 
+# 操作页面主页，页面显示数据库中所有字段
 @operate.route('/new')
 @login_required
 def new():
@@ -21,6 +22,7 @@ def new():
     return render_template("new_device.html", show_cols_h=show_cols_h, show_cols_s=show_cols_s)
 
 
+# 新增主机设备信息
 @operate.route('/add_new', methods=["GET", "POST"])
 @login_required
 def add_new():
@@ -36,6 +38,7 @@ def add_new():
     return jsonify(result)
 
 
+# 新增软件容量信息
 @operate.route('/add_new_s', methods=["GET", "POST"])
 @login_required
 def add_new_s():
@@ -70,12 +73,14 @@ def load():
             return redirect(request.url)
         # 文件符合要求
         if file and allowed_file(file.filename):
+            # fieldvalue为前端页面传入的select中option选中参数，该参数定义为数据的类型
             data_type = request.form.get("fieldvalue")
             filename = secure_filename(file.filename)
             file.save(os.path.join(UPLOAD_FOLDER, filename))
+            # 调用入库函数
             nums = load_to_db(data_type, UPLOAD_FOLDER+filename)
             return  render_template("load_success.html", nums=nums)
-        errors = '上传文件失败，只支持xls/xlsx格式'
+        errors = '上传文件失败，只支持xlsx格式'
     return render_template("load_device.html",errors=errors)
 
 
@@ -91,6 +96,7 @@ def download_file(filename):
 def load_to_db(data_type, filename):
     from openpyxl import load_workbook
     nums = 0
+    # 与数据中字段一致
     host_names = ["platform", "cluster", "hostname", "device_type", "manufacturer", "device_model", "serial",
              "account", "version", "software_version", "local_ip", "nat_ip", "os_version", "engine_room",
              "frame_number", "power_frame_number", "net_time", "period", "status"]
@@ -107,10 +113,14 @@ def load_to_db(data_type, filename):
     }
     try:
         wb = load_workbook(filename)
+        # 读取导入excel文件中的sheet表
         ws = wb[infos.get(data_type)["sheet"]]
+        # 获取列数
         cols = len(infos.get(data_type)["cols"])
+        # 获取行数
         rows = ws.max_row
         dbs = []
+        # 读取excel中每行数据，构造成dict, 方便入库
         for i in range(2, rows + 1):
             data = []
             for j in range(1, cols + 1):
@@ -121,12 +131,14 @@ def load_to_db(data_type, filename):
                 dbs.append(Host(**item))
             elif data_type == "software":
                 dbs.append(Capacity(**item))
+        # 批量添加
         db.session.add_all(dbs)
         db.session.commit()
         nums = len(dbs)
     except Exception as e:
         print(str(e))
     finally:
+        # 最后删除上传的文件
         import os
         os.remove(filename)
     return nums
